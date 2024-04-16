@@ -42,7 +42,7 @@ func NewWechatClient(cfg *Config) *PaymentClient {
 // strTradeNo     订单号
 // strNotifyUrl   支付回调通知URL(例如：POST https://www.your-company.com/notify/wxpay)
 // expireMinutes  订单支付有效时间(分钟)
-// payAmount 支付金额(单位: 元)
+// payAmount      支付金额(单位: 元)
 func (m *PaymentClient) Prepay(strDescription, strTradeNo, strNotifyUrl string, expireMinutes int, payAmount float64) (strCodeUrl string, err error) {
 	svc := native.NativeApiService{Client: m.client}
 	resp, result, err := svc.Prepay(context.Background(), native.PrepayRequest{
@@ -68,7 +68,7 @@ func (m *PaymentClient) Prepay(strDescription, strTradeNo, strNotifyUrl string, 
 	return *resp.CodeUrl, nil
 }
 
-// Mall查询订单状态
+// QueryOrderState 查询订单状态
 func (m *PaymentClient) QueryOrderState(strTradeNo string) (state, message string, err error) {
 	svc := native.NativeApiService{Client: m.client}
 	resp, result, err := svc.QueryOrderByOutTradeNo(context.Background(),
@@ -100,17 +100,6 @@ func (m *PaymentClient) QueryOrderState(strTradeNo string) (state, message strin
 	return *resp.TradeState, *resp.TradeStateDesc, nil
 }
 
-// WxPayNotifyHandler 支付回调处理
-func (m *PaymentClient) WxPayNotifyHandler(request *http.Request) (tx *payments.Transaction, err error) {
-	tx = new(payments.Transaction)
-	_, err = m.handler.ParseNotifyRequest(context.Background(), request, tx)
-	// 如果验签未通过，或者解密失败
-	if err != nil {
-		return nil, log.Error("wxpay parse notify request error [%s]", err.Error())
-	}
-	return tx, nil
-}
-
 // CloseOrder 关闭支付订单
 func (m *PaymentClient) CloseOrder(strTradeNo string) (ok bool, err error) {
 	svc := native.NativeApiService{Client: m.client}
@@ -125,4 +114,15 @@ func (m *PaymentClient) CloseOrder(strTradeNo string) (ok bool, err error) {
 		return false, log.Errorf("response code is %v", result.Response.StatusCode)
 	}
 	return true, nil
+}
+
+// WxPayNotifyHandler 支付回调处理
+func (m *PaymentClient) WxPayNotifyHandler(request *http.Request) (tx *payments.Transaction, err error) {
+	tx = new(payments.Transaction)
+	_, err = m.handler.ParseNotifyRequest(context.Background(), request, tx)
+	// 如果验签未通过，或者解密失败
+	if err != nil {
+		return nil, log.Error("wxpay parse notify request error [%s]", err.Error())
+	}
+	return tx, nil
 }
