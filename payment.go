@@ -68,8 +68,8 @@ func (m *PaymentClient) Prepay(strDescription, strTradeNo, strNotifyUrl string, 
 	return *resp.CodeUrl, nil
 }
 
-// QueryOrderState 查询订单状态
-func (m *PaymentClient) QueryOrderState(strTradeNo string) (state, message string, err error) {
+// QueryOrderByTradeNo 通过订单号查询订单状态
+func (m *PaymentClient) QueryOrderByTradeNo(strTradeNo string) (state, message string, err error) {
 	svc := native.NativeApiService{Client: m.client}
 	resp, result, err := svc.QueryOrderByOutTradeNo(context.Background(),
 		native.QueryOrderByOutTradeNoRequest{
@@ -82,17 +82,49 @@ func (m *PaymentClient) QueryOrderState(strTradeNo string) (state, message strin
 		return "", *resp.TradeStateDesc, err
 	}
 	if resp == nil || result == nil {
-		return "", "", log.Errorf("query payment response %v or result %v is empty", resp, result)
+		return "", "", log.Errorf("query order response %v or result %v is empty", resp, result)
 	}
 	if result.Response == nil {
-		return "", "", log.Errorf("query payment result response is empty")
+		return "", "", log.Errorf("query order result response is empty")
 	}
 	if result.Response.StatusCode != http.StatusOK {
 		err = log.Error("response code is :", result.Response.StatusCode)
 		return "", *resp.TradeStateDesc, err
 	}
 	if resp.TradeState == nil {
-		return "", "", log.Errorf("query payment response trade state is empty")
+		return "", "", log.Errorf("query order response trade state is empty")
+	}
+	if strings.EqualFold(*resp.TradeState, "success") {
+		return *resp.TradeState, *resp.TradeStateDesc, nil
+	}
+	return *resp.TradeState, *resp.TradeStateDesc, nil
+}
+
+// QueryOrderById 通过交易ID查询订单状态
+func (m *PaymentClient) QueryOrderById(strTransactionId string) (state, message string, err error) {
+	svc := native.NativeApiService{Client: m.client}
+	resp, result, err := svc.QueryOrderById(context.Background(),
+		native.QueryOrderByIdRequest{
+			TransactionId: core.String(strTransactionId),
+			Mchid:         core.String(m.cfg.MchId),
+		},
+	)
+	if err != nil {
+		log.Errorf(err.Error())
+		return "", *resp.TradeStateDesc, err
+	}
+	if resp == nil || result == nil {
+		return "", "", log.Errorf("query order response %v or result %v is empty", resp, result)
+	}
+	if result.Response == nil {
+		return "", "", log.Errorf("query order result response is empty")
+	}
+	if result.Response.StatusCode != http.StatusOK {
+		err = log.Error("response code is :", result.Response.StatusCode)
+		return "", *resp.TradeStateDesc, err
+	}
+	if resp.TradeState == nil {
+		return "", "", log.Errorf("query order response trade state is empty")
 	}
 	if strings.EqualFold(*resp.TradeState, "success") {
 		return *resp.TradeState, *resp.TradeStateDesc, nil
