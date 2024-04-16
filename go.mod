@@ -1,4 +1,4 @@
-module civet148/wxpay
+module github.com/civet148/wxpay
 
 go 1.21.0
 
