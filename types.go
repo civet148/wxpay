@@ -36,8 +36,13 @@ type PrepayRequest struct {
 
 // 退款请求
 type RefundRequest struct {
+	//[*] 商户订单号(跟TransactionId二选一)
+	TradeNo string
 
-	//[*] 商户系统内部的退款单号(原支付交易对应的商户订单号或原支付交易对应的微信订单号)，商户系统内部唯一，只能是数字、大小写字母_-|*@ ，同一退款单号多次请求只退一笔。
+	//[*] 原支付交易对应的微信订单号(跟TradeNo二选一)
+	TransactionId string
+
+	//[*] 商户系统内部的退款单号，商户系统内部唯一，只能是数字、大小写字母_-|*@ ，同一退款单号多次请求只退一笔。
 	RefundNo string
 
 	//[*] 退款金额(单位: 分)，不能超过原订单支付金额。

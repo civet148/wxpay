@@ -71,8 +71,8 @@ func (m *PaymentClient) Refund(req *RefundRequest) (*refunddomestic.Refund, erro
 	svc := refunddomestic.RefundsApiService{Client: m.client}
 	resp, result, err := svc.Create(context.Background(), refunddomestic.CreateRequest{
 		SubMchid:      core.String(req.SubMchId),
-		TransactionId: core.String(req.RefundNo),
-		OutTradeNo:    core.String(req.RefundNo),
+		TransactionId: core.String(req.TransactionId),
+		OutTradeNo:    core.String(req.TradeNo),
 		OutRefundNo:   core.String(req.RefundNo),
 		Reason:        core.String(req.Reason),
 		NotifyUrl:     core.String(req.NotifyUrl),
