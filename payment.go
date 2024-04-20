@@ -20,11 +20,10 @@ type PaymentClient struct {
 }
 
 type Config struct {
-	WechatAppId  string `json:"wechat_app_id"`   // 微信应用Id
 	MchId        string `json:"mch_id"`          // 商户号
 	MchCerSerNum string `json:"mch_cer_ser_num"` // 商户证书序列号
-	MchAPIv3Key  string `json:"mch_api_key"`     // 商户apiV3秘钥
-	PemPath      string `json:"pem_path"`        // PEM密钥文件路径
+	MchAPIv3Key  string `json:"mch_api_key"`     // 商户APIv3秘钥
+	PemPath      string `json:"pem_path"`        // 商户PEM密钥文件路径
 }
 
 func NewWechatClient(cfg *Config) *PaymentClient {
@@ -38,15 +37,16 @@ func NewWechatClient(cfg *Config) *PaymentClient {
 }
 
 // Prepay 订单预付款
+// wechatAppId    微信应用ID (登录微信开发平台创建并获取应用ID https://mp.weixin.qq.com)
 // strDescription 订单描述
 // strTradeNo     订单号
 // strNotifyUrl   支付回调通知URL(例如：POST https://www.your-company.com/notify/wxpay)
 // expireMinutes  订单支付有效时间(分钟)
 // payAmount      支付金额(单位: 元)
-func (m *PaymentClient) Prepay(strDescription, strTradeNo, strNotifyUrl string, expireMinutes int, payAmount float64) (strCodeUrl string, err error) {
+func (m *PaymentClient) Prepay(wechatAppId, strDescription, strTradeNo, strNotifyUrl string, expireMinutes int, payAmount float64) (strCodeUrl string, err error) {
 	svc := native.NativeApiService{Client: m.client}
 	resp, result, err := svc.Prepay(context.Background(), native.PrepayRequest{
-		Appid:       core.String(m.cfg.WechatAppId),
+		Appid:       core.String(wechatAppId),
 		Mchid:       core.String(m.cfg.MchId),
 		Description: core.String(strDescription),
 		OutTradeNo:  core.String(strTradeNo),
