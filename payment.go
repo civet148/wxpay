@@ -7,6 +7,7 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/core/notify"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/native"
+	"github.com/wechatpay-apiv3/wechatpay-go/services/refunddomestic"
 	"net/http"
 	"strings"
 )
@@ -36,36 +37,61 @@ func NewWechatClient(cfg *Config) *PaymentClient {
 	return m
 }
 
-// Prepay 订单预付款
-// wechatAppId    微信应用ID (登录微信开发平台创建并获取应用ID https://mp.weixin.qq.com)
-// strDescription 订单描述
-// strTradeNo     订单号
-// strNotifyUrl   支付回调通知URL(例如：POST https://www.your-company.com/notify/wxpay)
-// expireMinutes  订单支付有效时间(分钟)
-// payAmount      支付金额(单位: 元)
-func (m *PaymentClient) Prepay(wechatAppId, strDescription, strTradeNo, strNotifyUrl string, expireMinutes int, payAmount float64) (strCodeUrl string, err error) {
+// Prepay 	扫码付款
+// 返回:     扫码支付链接
+func (m *PaymentClient) Prepay(req *PrepayRequest) (strCodeUrl string, err error) {
 	svc := native.NativeApiService{Client: m.client}
 	resp, result, err := svc.Prepay(context.Background(), native.PrepayRequest{
-		Appid:       core.String(wechatAppId),
+		Appid:       core.String(req.AppId),
 		Mchid:       core.String(m.cfg.MchId),
-		Description: core.String(strDescription),
-		OutTradeNo:  core.String(strTradeNo),
-		TimeExpire:  core.Time(MinuteAfter(expireMinutes)),
-		NotifyUrl:   core.String(strNotifyUrl),
+		Description: core.String(req.Description),
+		OutTradeNo:  core.String(req.TradeNo),
+		TimeExpire:  core.Time(MinuteAfter(req.ExpireMinutes)),
+		NotifyUrl:   core.String(req.NotifyUrl),
+		GoodsTag:    core.String(req.GoodsTag),
+		LimitPay:    req.LimitPay,
 		Amount: &native.Amount{
-			Currency: core.String("CNY"),
-			Total:    core.Int64(int64(payAmount * PayUnit)), // 转换为分
+			Currency: core.String(req.Currency),
+			Total:    core.Int64(req.Amount),
 		},
+		Detail:     req.Detail,
+		SettleInfo: req.SettleInfo,
+		SceneInfo:  req.SceneInfo,
 	})
 	if err != nil {
-		log.Errorf(err.Error())
-		return "", err
+		return "", log.Errorf(err.Error())
 	}
 	if result.Response.StatusCode != http.StatusOK {
-		err = log.Errorf("response http code is [%v]", result.Response.StatusCode)
-		return "", err
+		return "", log.Errorf("response http code is [%v]", result.Response.StatusCode)
 	}
 	return *resp.CodeUrl, nil
+}
+
+func (m *PaymentClient) Refund(req *RefundRequest) (*refunddomestic.Refund, error) {
+	svc := refunddomestic.RefundsApiService{Client: m.client}
+	resp, result, err := svc.Create(context.Background(), refunddomestic.CreateRequest{
+		SubMchid:      core.String(req.SubMchId),
+		TransactionId: core.String(req.RefundNo),
+		OutTradeNo:    core.String(req.RefundNo),
+		OutRefundNo:   core.String(req.RefundNo),
+		Reason:        core.String(req.Reason),
+		NotifyUrl:     core.String(req.NotifyUrl),
+		Amount: &refunddomestic.AmountReq{
+			Total:    core.Int64(req.TotalAmount),
+			Refund:   core.Int64(req.RefundAmount),
+			Currency: core.String(req.Currency),
+			From:     nil,
+		},
+		FundsAccount: nil,
+		GoodsDetail:  nil,
+	})
+	if err != nil {
+		return nil, log.Errorf(err.Error())
+	}
+	if result.Response.StatusCode != http.StatusOK {
+		return nil, log.Errorf("response http code is [%v]", result.Response.StatusCode)
+	}
+	return resp, nil
 }
 
 // QueryOrderByTradeNo 通过订单号查询订单状态
