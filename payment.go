@@ -3,6 +3,7 @@ package wxpay
 import (
 	"context"
 	"github.com/civet148/log"
+	"github.com/shopspring/decimal"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/notify"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments"
@@ -52,7 +53,7 @@ func (m *PaymentClient) Prepay(req *PrepayRequest) (strCodeUrl string, err error
 		LimitPay:    req.LimitPay,
 		Amount: &native.Amount{
 			Currency: core.String(req.Currency),
-			Total:    core.Int64(req.Amount),
+			Total:    core.Int64(req.Amount.Mul(decimal.NewFromInt(100)).IntPart()),
 		},
 		Detail:     req.Detail,
 		SettleInfo: req.SettleInfo,

@@ -4,6 +4,7 @@ go 1.21.0
 
 require (
 	github.com/civet148/log v1.5.1
+	github.com/shopspring/decimal v1.4.0
 	github.com/wechatpay-apiv3/wechatpay-go v0.2.18
 )
 

@@ -1,6 +1,7 @@
 package wxpay
 
 import (
+	"github.com/shopspring/decimal"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/native"
 )
 
@@ -8,8 +9,8 @@ import (
 type PrepayRequest struct {
 	//[*] 应用ID
 	AppId string
-	//[*] 支付金额(单位: 分)
-	Amount int64
+	//[*] 支付金额(单位: 元)
+	Amount decimal.Decimal
 	//[*] 符合ISO 4217标准的三位字母代码，目前只支持人民币：CNY。
 	Currency string
 	//[*] 商户订单号
