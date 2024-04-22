@@ -27,7 +27,7 @@ type Config struct {
 	PemPath      string `json:"pem_path"`        // 商户PEM密钥文件路径
 }
 
-func NewWechatClient(cfg *Config) *PaymentClient {
+func NewPaymentClient(cfg *Config) *PaymentClient {
 	mchPrivateKey := newPrivateKey(cfg.PemPath)
 	m := &PaymentClient{
 		cfg:     cfg,
