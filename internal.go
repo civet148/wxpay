@@ -10,14 +10,24 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/core/notify"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/option"
 	"github.com/wechatpay-apiv3/wechatpay-go/utils"
+	"strings"
 )
 
-func newPrivateKey(strPemPath string) (mchPrivateKey *rsa.PrivateKey) {
+const (
+	PemSuffix = ".pem"
+)
+
+// newPrivateKey load from pem file (suffix .pem) or private key string
+func newPrivateKey(strPrivateKey string) (mchPrivateKey *rsa.PrivateKey) {
 	var err error
-	if strPemPath == "" {
-		panic("pem file path is empty")
+	if strPrivateKey == "" {
+		panic("pem file path or private key string is empty")
 	}
-	mchPrivateKey, err = utils.LoadPrivateKeyWithPath(strPemPath)
+	if strings.HasSuffix(strPrivateKey, PemSuffix) {
+		mchPrivateKey, err = utils.LoadPrivateKeyWithPath(strPrivateKey)
+	} else {
+		mchPrivateKey, err = utils.LoadPrivateKey(strPrivateKey)
+	}
 	if err != nil {
 		log.Panic("load merchant private key error")
 	}
