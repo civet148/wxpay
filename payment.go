@@ -21,14 +21,14 @@ type PaymentClient struct {
 }
 
 type Config struct {
-	MchId        string `json:"mch_id"`          // 商户号
-	MchCerSerNum string `json:"mch_cer_ser_num"` // 商户证书序列号
-	MchAPIv3Key  string `json:"mch_api_key"`     // 商户APIv3秘钥
-	PemPath      string `json:"pem_path"`        // 商户PEM密钥文件路径
+	MchId         string // 商户号
+	MchCerSerNum  string // 商户证书序列号
+	MchAPIv3Key   string // 商户APIv3秘钥
+	MchPrivateKey string // 商户私钥串或PEM私钥文件路径
 }
 
 func NewPaymentClient(cfg *Config) *PaymentClient {
-	mchPrivateKey := newPrivateKey(cfg.PemPath)
+	mchPrivateKey := newPrivateKey(cfg.MchPrivateKey)
 	m := &PaymentClient{
 		cfg:     cfg,
 		client:  newPaymentClient(cfg, mchPrivateKey),
