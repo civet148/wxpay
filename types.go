@@ -1,9 +1,27 @@
 package wxpay
 
 import (
+	"encoding/json"
 	"github.com/shopspring/decimal"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/native"
 )
+
+type NotifyResp struct {
+	Code    string `json:"code,omitempty"`
+	Message string `json:"message,omitempty"`
+}
+
+func NewNotifySuccessResp() *NotifyResp {
+	return &NotifyResp{
+		Code:    "0",
+		Message: "SUCCESS",
+	}
+}
+
+func (r NotifyResp) JsonData() []byte {
+	data, _ := json.Marshal(&r)
+	return data
+}
 
 // 扫码支付请求
 type PrepayRequest struct {

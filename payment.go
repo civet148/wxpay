@@ -175,13 +175,22 @@ func (m *PaymentClient) CloseOrder(strTradeNo string) (ok bool, err error) {
 	return true, nil
 }
 
-// WxPayNotifyHandler 支付回调处理
-func (m *PaymentClient) WxPayNotifyHandler(request *http.Request) (tx *payments.Transaction, err error) {
+// WxPayNotifyHandler 支付回调处理(如果writer参数为nil则需要手动返回成功消息给微信支付平台)
+func (m *PaymentClient) WxPayNotifyHandler(writer http.ResponseWriter, request *http.Request) (tx *payments.Transaction, err error) {
 	tx = new(payments.Transaction)
 	_, err = m.handler.ParseNotifyRequest(context.Background(), request, tx)
 	// 如果验签未通过，或者解密失败
 	if err != nil {
 		return nil, log.Error("wxpay parse notify request error [%s]", err.Error())
+	}
+	if writer != nil {
+		var resp = NewNotifySuccessResp()
+		writer.WriteHeader(http.StatusOK)
+		_, err = writer.Write(resp.JsonData())
+		if err != nil {
+			log.Warnf("payment notify ack send failed, error [%s]", err.Error())
+			return tx, nil
+		}
 	}
 	return tx, nil
 }
