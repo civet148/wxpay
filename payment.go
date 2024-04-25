@@ -10,7 +10,6 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/native"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/refunddomestic"
 	"net/http"
-	"strings"
 )
 
 const PayUnit = 100
@@ -96,9 +95,10 @@ func (m *PaymentClient) Refund(req *RefundRequest) (*refunddomestic.Refund, erro
 }
 
 // QueryOrderByTradeNo 通过订单号查询订单状态
-func (m *PaymentClient) QueryOrderByTradeNo(strTradeNo string) (state, message string, err error) {
+func (m *PaymentClient) QueryOrderByTradeNo(strTradeNo string) (tx *payments.Transaction, err error) {
+	var result *core.APIResult
 	svc := native.NativeApiService{Client: m.client}
-	resp, result, err := svc.QueryOrderByOutTradeNo(context.Background(),
+	tx, result, err = svc.QueryOrderByOutTradeNo(context.Background(),
 		native.QueryOrderByOutTradeNoRequest{
 			OutTradeNo: core.String(strTradeNo),
 			Mchid:      core.String(m.cfg.MchId),
@@ -106,31 +106,29 @@ func (m *PaymentClient) QueryOrderByTradeNo(strTradeNo string) (state, message s
 	)
 	if err != nil {
 		log.Errorf(err.Error())
-		return "", *resp.TradeStateDesc, err
+		return nil, err
 	}
-	if resp == nil || result == nil {
-		return "", "", log.Errorf("query order response %v or result %v is empty", resp, result)
+	if tx == nil || result == nil {
+		return nil, log.Errorf("query order response %v or result %v is empty", tx, result)
 	}
 	if result.Response == nil {
-		return "", "", log.Errorf("query order result response is empty")
+		return nil, log.Errorf("query order result response is empty")
 	}
 	if result.Response.StatusCode != http.StatusOK {
 		err = log.Error("response code is :", result.Response.StatusCode)
-		return "", *resp.TradeStateDesc, err
+		return nil, err
 	}
-	if resp.TradeState == nil {
-		return "", "", log.Errorf("query order response trade state is empty")
+	if tx.TradeState == nil {
+		return nil, log.Errorf("query order response trade state is empty")
 	}
-	if strings.EqualFold(*resp.TradeState, "success") {
-		return *resp.TradeState, *resp.TradeStateDesc, nil
-	}
-	return *resp.TradeState, *resp.TradeStateDesc, nil
+	return tx, nil
 }
 
 // QueryOrderById 通过交易ID查询订单状态
-func (m *PaymentClient) QueryOrderById(strTransactionId string) (state, message string, err error) {
+func (m *PaymentClient) QueryOrderById(strTransactionId string) (tx *payments.Transaction, err error) {
+	var result *core.APIResult
 	svc := native.NativeApiService{Client: m.client}
-	resp, result, err := svc.QueryOrderById(context.Background(),
+	tx, result, err = svc.QueryOrderById(context.Background(),
 		native.QueryOrderByIdRequest{
 			TransactionId: core.String(strTransactionId),
 			Mchid:         core.String(m.cfg.MchId),
@@ -138,25 +136,22 @@ func (m *PaymentClient) QueryOrderById(strTransactionId string) (state, message 
 	)
 	if err != nil {
 		log.Errorf(err.Error())
-		return "", *resp.TradeStateDesc, err
+		return nil, err
 	}
-	if resp == nil || result == nil {
-		return "", "", log.Errorf("query order response %v or result %v is empty", resp, result)
+	if tx == nil || result == nil {
+		return nil, log.Errorf("query order response %v or result %v is empty", tx, result)
 	}
 	if result.Response == nil {
-		return "", "", log.Errorf("query order result response is empty")
+		return nil, log.Errorf("query order result response is empty")
 	}
 	if result.Response.StatusCode != http.StatusOK {
 		err = log.Error("response code is :", result.Response.StatusCode)
-		return "", *resp.TradeStateDesc, err
+		return nil, err
 	}
-	if resp.TradeState == nil {
-		return "", "", log.Errorf("query order response trade state is empty")
+	if tx.TradeState == nil {
+		return nil, log.Errorf("query order response trade state is empty")
 	}
-	if strings.EqualFold(*resp.TradeState, "success") {
-		return *resp.TradeState, *resp.TradeStateDesc, nil
-	}
-	return *resp.TradeState, *resp.TradeStateDesc, nil
+	return tx, nil
 }
 
 // CloseOrder 关闭支付订单

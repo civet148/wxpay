@@ -6,6 +6,15 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/native"
 )
 
+type TradeState string
+
+const (
+	TradeState_Success  TradeState = "SUCCESS"  //成功
+	TradeState_Accepted TradeState = "ACCEPTED" //处理中
+	TradeState_PayFail  TradeState = "PAY_FAIL" //支付失败
+	TradeState_Refund   TradeState = "REFUND"   //已退款
+)
+
 type NotifyResp struct {
 	Code    string `json:"code,omitempty"`
 	Message string `json:"message,omitempty"`
