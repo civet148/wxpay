@@ -3,6 +3,7 @@ package wxpay
 import (
 	"context"
 	"crypto/rsa"
+	"fmt"
 	"github.com/civet148/log"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/auth/verifiers"
@@ -26,6 +27,7 @@ func newPrivateKey(strPrivateKey string) (mchPrivateKey *rsa.PrivateKey) {
 	if strings.HasSuffix(strPrivateKey, PemSuffix) {
 		mchPrivateKey, err = utils.LoadPrivateKeyWithPath(strPrivateKey)
 	} else {
+		strPrivateKey = completePrivateKey(strPrivateKey)
 		mchPrivateKey, err = utils.LoadPrivateKey(strPrivateKey)
 	}
 	if err != nil {
@@ -60,4 +62,14 @@ func newCallbackHandler(cfg *Config, mchPrivateKey *rsa.PrivateKey) (handler *no
 	// 3. 使用证书访问器初始化 `notify.Handler`
 	handler = notify.NewNotifyHandler(cfg.MchAPIv3Key, verifiers.NewSHA256WithRSAVerifier(certificateVisitor))
 	return handler
+}
+
+func completePrivateKey(strPrivateKey string) string {
+	if !strings.Contains(strPrivateKey, privateKeyBegin) {
+		strPrivateKey = fmt.Sprintf("%s\n%s", privateKeyBegin, strPrivateKey)
+	}
+	if !strings.Contains(strPrivateKey, privateKeyEnd) {
+		strPrivateKey = fmt.Sprintf("%s\n%s", strPrivateKey, privateKeyEnd)
+	}
+	return strPrivateKey
 }

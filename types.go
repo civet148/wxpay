@@ -6,6 +6,11 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/native"
 )
 
+const (
+	privateKeyBegin = "-----BEGIN PRIVATE KEY-----"
+	privateKeyEnd   = "-----END PRIVATE KEY-----"
+)
+
 type TradeState string
 
 const (
